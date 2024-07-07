@@ -2,6 +2,13 @@ const { ApolloServer, gql } = require("apollo-server");
 const fs = require("fs");
 const path = require("path");
 const { PrismaClient } = require("@prisma/client");
+const { getUserId } = require("./Utils");
+
+// リゾルバ関係のファイル
+const Query = require("./resolvers/Query");
+const Mutation = require("./resolvers/Mutation");
+const Link = require("./resolvers/Link");
+const User = require("./resolvers/User");
 
 const prisma = new PrismaClient();
 
@@ -19,46 +26,51 @@ const prisma = new PrismaClient();
 
 // リゾルバ
 const resolvers = {
+  Query,
+  Mutation,
+  Link,
+  User,
   // select
-  Query: {
-    info: () => "HackerNewsクローン",
-    //feed: () => links,
-    feed: async (parent, args, context) => {
-      return context.prisma.link.findMany();
-    },
-  },
-
+  // Query: {
+  //   info: () => "HackerNewsクローン",
+  //   feed: () => links,
+  //   feed: async (parent, args, context) => {
+  //     return context.prisma.link.findMany();
+  //   },
+  // },
   // insert
-  Mutation: {
-    post: (parent, args, context) => {
-      const newLink = context.prisma.link.create({
-        data: {
-          url: args.url,
-          description: args.description,
-        },
-      });
-      return newLink;
-    },
-    // post: (parent, args) => {
-    //   let idCount = links.length;
-
-    //   const link = {
-    //     id: `link-${idCount++}`,
-    //     description: args.description,
-    //     url: args.url,
-    //   };
-
-    //   links.push(link);
-    //   return link;
-    // },
-  },
+  // Mutation: {
+  //   post: (parent, args, context) => {
+  //     const newLink = context.prisma.link.create({
+  //       data: {
+  //         url: args.url,
+  //         description: args.description,
+  //       },
+  //     });
+  //     return newLink;
+  //   },
+  //   post: (parent, args) => {
+  //     let idCount = links.length;
+  //     const link = {
+  //       id: `link-${idCount++}`,
+  //       description: args.description,
+  //       url: args.url,
+  //     };
+  //     links.push(link);
+  //     return link;
+  //   },
+  // },
 };
 
 const server = new ApolloServer({
   typeDefs: fs.readFileSync(path.join(__dirname, "schema.graphql"), "utf-8"),
   resolvers,
-  context: {
-    prisma,
+  context: ({ req }) => {
+    return {
+      ...req,
+      prisma,
+      userId: req && req.headers.authorization ? getUserId(req) : null,
+    };
   },
 });
 
