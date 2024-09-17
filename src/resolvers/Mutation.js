@@ -62,8 +62,39 @@ async function post(parent, args, context) {
   return newLink;
 }
 
+// 投票する
+async function vote(parent, args, cotext) {
+  // const vote = context.prisma.vote.findUnique({
+  //   where: {
+  //     linkId_userId: {
+  //       linkId: Number(args.linkId),
+  //       userId: userId,
+  //     },
+  //   },
+  // });
+
+  // // 2回投票を防ぐ
+  // if (Boolean(vote)) {
+  //   throw new Error(`投票済みです: ${args.linkId}`);
+  // }
+
+  // 投票する
+  const newVote = context.prisma.vote.create({
+    data: {
+      user: { connect: { id: userId } },
+      link: { connect: { id: Number(args.linkId) } },
+    },
+  });
+
+  // 送信する
+  context.pubsub.publish("NEW_VOTE", newVote);
+
+  return newVote;
+}
+
 module.exports = {
   signup,
   login,
   post,
+  vote,
 };

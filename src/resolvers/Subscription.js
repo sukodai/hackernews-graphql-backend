@@ -1,3 +1,7 @@
+/**
+ * 受信側の設定
+ */
+
 const { subscribe } = require("graphql");
 
 function newLinkSubscribe(parent, args, context) {
@@ -11,6 +15,18 @@ const newLink = {
   },
 };
 
+function newVoteSubscribe(parent, args, context) {
+  return context.pubsub.asyncIterator("NEW_VOTE");
+}
+
+const newVote = {
+  subscribe: newVoteSubscribe,
+  resolve: (payload) => {
+    return payload;
+  },
+};
+
 module.exports = {
   newLink,
+  newVote,
 };
